@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Availability</title>
+    <script>
+        let data = [];
+        
+        async function loadCSV() {
+            const response = await fetch('Auction_document_list.csv'); // Update with actual path
+            const text = await response.text();
+            const rows = text.split("\n").map(row => row.split(","));
+            
+            const headers = rows[0];
+            data = rows.slice(1).map(row => {
+                let obj = {};
+                headers.forEach((header, i) => obj[header.trim()] = row[i] ? row[i].trim() : "");
+                return obj;
+            });
+            
+            populateDropdown();
+        }
+        
+        function populateDropdown() {
+            const dropdown = document.getElementById("documentDropdown");
+            data.forEach(entry => {
+                let option = document.createElement("option");
+                option.value = entry["Document name"];
+                option.textContent = entry["Document name"];
+                dropdown.appendChild(option);
+            });
+        }
+        
+        function showDetails() {
+            const selectedDoc = document.getElementById("documentDropdown").value;
+            const resultDiv = document.getElementById("results");
+            
+            const entry = data.find(doc => doc["Document name"] === selectedDoc);
+            if (entry) {
+                resultDiv.innerHTML = `<h3>Details for: ${selectedDoc}</h3><ul>` +
+                    Object.entries(entry).map(([key, value]) => key !== "Document name" ? `<li>${key}: ${value}</li>` : "").join('') +
+                    `</ul>`;
+            } else {
+                resultDiv.innerHTML = "<p>No details found.</p>";
+            }
+        }
+        
+        window.onload = loadCSV;
+    </script>
+</head>
+<body>
+    <h1>Document Availability</h1>
+    <label for="documentDropdown">Select a document:</label>
+    <select id="documentDropdown" onchange="showDetails()">
+        <option value="">--Select Document--</option>
+    </select>
+    
+    <div id="results"></div>
+</body>
+</html>
